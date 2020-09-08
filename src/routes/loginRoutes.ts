@@ -1,5 +1,7 @@
 import { Request, Response, Router } from 'express';
-
+interface RequestWithBody extends Request {
+  body: { [key: string]: string | undefined };
+}
 const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
@@ -7,7 +9,7 @@ router.get('/', (req: Request, res: Response) => {
     <form method="POST">
       <div>
         <label>Email</label>
-        <input name="email" type="email" />
+        <input name="email" />
       </div>
       <div>
         <label>Password</label>
@@ -18,10 +20,19 @@ router.get('/', (req: Request, res: Response) => {
   `);
 });
 
-router.post('/', (req: Request, res: Reponse) => {
+router.post('/', (req: RequestWithBody, res: Response) => {
   const { email, password } = req.body;
-
-  res.send(email + password);
+  if (
+    email &&
+    password &&
+    email === 'hano@gmail.com' &&
+    password === 'password'
+  ) {
+    req.session = { loggedIn: true };
+    res.redirect('/');
+  } else {
+    throw new Error('Invalid email or password');
+  }
 });
 
 export { router };
