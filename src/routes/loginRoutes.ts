@@ -1,8 +1,22 @@
-import { Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 interface RequestWithBody extends Request {
   body: { [key: string]: string | undefined };
 }
 const router = Router();
+
+const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (req.session && req.session.loggedIn) {
+    next();
+    return;
+  }
+
+  res.status(403);
+  res.send('Not Authorized');
+};
 
 router.get('/', (req: Request, res: Response) => {
   if (req.session && req.session.loggedIn) {
@@ -56,6 +70,10 @@ router.post('/login', (req: RequestWithBody, res: Response) => {
 router.get('/logout', (req: Request, res: Response) => {
   req.session = null;
   res.redirect('/');
+});
+
+router.get('/protected', authenticate, (req: Request, res: Response) => {
+  res.send('You made it, you can see the gem 💎  now! 🙌');
 });
 
 export { router };
